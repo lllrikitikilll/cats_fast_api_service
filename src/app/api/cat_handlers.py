@@ -69,6 +69,10 @@ async def patch_cat(cat_id: int):
 
 
 @router.delete("/cats/{cat_id}")
-async def delete_cat(cat_id: int):
+async def delete_cat(
+    cat_id: int,
+    session: AsyncSession = Depends(get_db),
+    cat_service: CatService = Depends(get_cat_service),
+) -> schemas.DeleteCatResponse:
     """Удалить информацию о котенке."""
-    pass  # noqa: WPS420
+    return await cat_service.delete_cat(session=session, cat_id=cat_id)

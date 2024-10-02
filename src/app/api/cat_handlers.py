@@ -11,7 +11,7 @@ router = APIRouter(
 )
 
 
-@router.post("/cats")
+@router.get("/cats")
 async def get_all_cats(
     session: AsyncSession = Depends(get_db),
     cat_service: CatService = Depends(get_cat_service),
@@ -21,7 +21,7 @@ async def get_all_cats(
     return schemas.CatListResponseModel(cats=cats)
 
 
-@router.post("/cats/breeds")
+@router.get("/cats/breeds")
 async def all_breeds(
     session: AsyncSession = Depends(get_db),
     cat_service: CatService = Depends(get_cat_service),
@@ -31,7 +31,7 @@ async def all_breeds(
     return schemas.BreedListResponseModel(breeds=breeds)
 
 
-@router.post("/cats/breeds/{breed}")
+@router.get("/cats/breeds/{breed}")
 async def cats_with_breed(
     breed: str,
     session: AsyncSession = Depends(get_db),
@@ -42,7 +42,7 @@ async def cats_with_breed(
     return schemas.CatListResponseModel(cats=cats)
 
 
-@router.post("/cats/{cat_id}")
+@router.get("/cats/{cat_id}")
 async def cat_info(
     cat_id: int,
     session: AsyncSession = Depends(get_db),

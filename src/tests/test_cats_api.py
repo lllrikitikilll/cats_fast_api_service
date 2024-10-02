@@ -80,3 +80,17 @@ async def test_delete_cat(test_client, cat_id):
     assert response.status_code == status.HTTP_200_OK
     assert response_json["status"] == schemas.Status.success.value
     assert response_json["message"] == "Запись удалена"
+
+
+@pytest.mark.api
+@pytest.mark.integration
+async def test_update_cat(test_client, cat_id, update_cat_payload):
+    """Тест записи объекта Cat в БД."""
+    response = await test_client.patch(
+        f"/api/cats/{cat_id}", json=update_cat_payload,
+    )
+    response_json = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response_json["status"] == schemas.Status.success.value
+    assert response_json["message"] == "Запись обновлена"

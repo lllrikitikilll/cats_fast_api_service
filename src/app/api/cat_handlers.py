@@ -63,9 +63,16 @@ async def add_cat(
 
 
 @router.patch("/cats/{cat_id}")
-async def patch_cat(cat_id: int):
+async def patch_cat(
+    cat_id: int,
+    cat_data: schemas.UpdateCatData,
+    session: AsyncSession = Depends(get_db),
+    cat_service: CatService = Depends(get_cat_service),
+) -> schemas.UpdateCatResponse:
     """Изменение информации о котенке."""
-    pass  # noqa: WPS420
+    return await cat_service.update_cat(
+        session=session, cat_id=cat_id, cat_data=cat_data,
+    )
 
 
 @router.delete("/cats/{cat_id}")

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.core.settings import settings
@@ -52,10 +52,14 @@ async def cat_info(
     return await cat_service.get_cats_with_id(session=session, cat_id=cat_id)
 
 
-@router.post("/cats")
-async def add_cat():
+@router.post("/cats", status_code=status.HTTP_201_CREATED)
+async def add_cat(
+    cat_data: schemas.CreateCatDataModel,
+    session: AsyncSession = Depends(get_db),
+    cat_service: CatService = Depends(get_cat_service),
+) -> schemas.CreateCatResponse:
     """Добавление информации о котенке."""
-    pass  # noqa: WPS420
+    return await cat_service.create_cat(session=session, cat_data=cat_data)
 
 
 @router.patch("/cats/{cat_id}")

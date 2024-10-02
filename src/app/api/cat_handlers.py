@@ -1,24 +1,40 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.app.core.settings import settings
+from src.app.models.db_helper import db_helper
+from src.app.schemas.schemas import CatListResponseModel
+from src.app.service.cat import CatService, get_cat_service
 
 router = APIRouter(
-    prefix='/api',
+    prefix=settings.url.prefix,
 )
 
 
-@router.post('/breeds')
-async def breeds():
+@router.post('/cats')
+async def get_all_cats(
+    session: AsyncSession = Depends(db_helper.session_dependency),
+    cat_service: CatService = Depends(get_cat_service),
+) -> CatListResponseModel:
+    """Получение списка всех котят."""
+    cats = await cat_service.get_all_cats(session=session)
+    return CatListResponseModel(cats=cats)
+
+
+@router.post('/cats/breeds')
+async def all_breeds():
     """Получение списка пород."""
     pass  # noqa: WPS420
 
 
-@router.post('/cats')
-async def cats():
-    """Получение списка всех котят."""
+@router.post('/cats/breeds/{breed}')
+async def cats_with_breeds(breed: str):
+    """Получение списка пород."""
     pass  # noqa: WPS420
 
 
-@router.post('/cats/{id}')
-async def cat_info():
+@router.post('/cats/{cat_id}')
+async def cat_info(cat_id: int):
     """Получение подробной информации о котенке."""
     pass  # noqa: WPS420
 
@@ -29,13 +45,13 @@ async def add_cat():
     pass  # noqa: WPS420
 
 
-@router.patch('/cats/{id}')
-async def patch_cat():
+@router.patch('/cats/{cat_id}')
+async def patch_cat(cat_id: int):
     """Изменение информации о котенке."""
     pass  # noqa: WPS420
 
 
-@router.delete('/cats/{id}')
-async def delete_cat():
+@router.delete('/cats/{cat_id}')
+async def delete_cat(cat_id: int):
     """Удалить информацию о котенке."""
     pass  # noqa: WPS420

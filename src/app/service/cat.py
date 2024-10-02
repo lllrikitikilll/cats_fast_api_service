@@ -199,6 +199,42 @@ class CatService:
             message="Запись удалена",
         )
 
+    async def update_cat(
+        self, session: AsyncSession, cat_id: int, cat_data: schemas.UpdateCatData,
+    ):
+        """Обновление объекта Cat по id.
+
+        Args:
+            session (AsyncSession): асинхронная сессия
+            cat_id (int): id кошки в БД
+            cat_data (schemas.UpdateCatData): Данные для обновления объекта
+
+        Raises:
+            HTTPException: Ошибка 404 если нет такой записи в БД
+
+        Returns:
+            schemas.UpdateCatResponse: статус запроса
+        """
+        async with session.begin():
+            stmt = select(Cat).where(Cat.id == cat_id)
+            result_db = await session.execute(stmt)
+
+            cat = result_db.scalar_one_or_none()
+            if not cat:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail='Кошка не найдена.',
+                )
+
+            for key, value in cat_data.model_dump().items():  # noqa: WPS110
+                setattr(cat, key, value)
+
+            await session.commit()
+        return schemas.UpdateCatResponse(
+            status=schemas.Status.success,
+            message="Запись обновлена",
+        )
+
 
 cat_service = CatService()
 

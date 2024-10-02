@@ -1,71 +1,88 @@
-from typing import AsyncGenerator
-
 import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from src.app.core.settings import settings
 from src.app.main import app
 from src.app.models import Base, Breed, Cat
-from src.app.models.db_helper import db_helper
+from src.app.models.db_helper import get_db
 
 
-@pytest.fixture(scope='session', autouse=True)
-async def setup_database():
-    """Инициализация базы данных перед тестами."""
-    async_engine = create_async_engine(settings.psql.url)
-    async with async_engine.begin() as connection:
-        # Создаем все таблицы перед тестами
-        await connection.run_sync(Base.metadata.create_all)
-    yield
-    # После всех тестов можно удалить данные или сбросить базу
-    async with async_engine.begin() as connection:
-        await connection.run_sync(Base.metadata.drop_all)
+@pytest.fixture(scope="function")
+async def db_session():
+    """Создание новой сессии базы данных с откатом в конце теста."""
+    # Создаем асинхронный движок для базы данных
+    engine = create_async_engine(settings.psql.url)
 
+    # Создаем асинхронный sessionmaker для управления сессиями
+    async_session_factory = async_sessionmaker(
+        bind=engine, autocommit=False, autoflush=False, expire_on_commit=False,
+    )
 
-@pytest.fixture(scope='function')
-async def db_session() -> AsyncGenerator:
-    """Фикстура для предоставления сессии с откатом изменений после каждого теста."""
-    async for session in db_helper.session_dependency():
-        yield session
-        # Откатываем все изменения после теста
+    # Создаем таблицы в базе данных
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    async with async_session_factory() as session:
+        yield session  # Возвращаем сессию для использования в тестах
+
+        # Откат изменений после выполнения теста
         await session.rollback()
 
+    # Закрываем соединение с базой данных
+    await engine.dispose()
 
-@pytest.fixture(scope='session')
-async def cat_payload():
+
+@pytest.fixture(scope="function")
+async def breed_payload():
     """Тестовые данные для создания записи в БД."""
     return {
-        'color': 'Красный',
-        'age_in_months': 10,
-        'description': None,
-        'breed_name': 'Британский вислоухий',
+        "name": "Британский вислоухий",
     }
 
 
-@pytest.fixture(scope='function', autouse=True)
-async def setup_test_data(db_session, cat_payload):
-    """Заполняет базу тестовыми данными перед каждым тестом."""
-    breed1 = Breed(name=cat_payload['breed_name'])
+@pytest.fixture(scope="function")
+async def cat_payload(breed_payload):
+    """Тестовые данные для создания записи в БД."""
+    return {
+        "color": "Красный",
+        "age_in_months": 10,
+        "description": None,
+    }
+
+
+@pytest.fixture(scope="function", autouse=True)
+async def setup_database(db_session, cat_payload, breed_payload):
+    """Инициализация базы данных перед тестами."""
+    # Создаем породу
+    breed1 = Breed(name=breed_payload["name"])
     db_session.add(breed1)
     await db_session.commit()
     await db_session.refresh(breed1)
+
+    # Создаем кошку
     cat1 = Cat(
         breed_id=breed1.id,
-        color=cat_payload['color'],
-        age_in_months=cat_payload['age_in_months'],
-        description=cat_payload['description'],
+        color=cat_payload["color"],
+        age_in_months=cat_payload["age_in_months"],
+        description=cat_payload["description"],
     )
     db_session.add(cat1)
     await db_session.commit()
 
 
-@pytest.fixture(scope='function')
-async def test_client():
-    """Тестовый клиент."""
+@pytest.fixture(scope="function")
+async def test_client(db_session):
+    """ТЕстовый клиент с переаписью зависимости бд."""
+
+    async def override_get_db():  # noqa: WPS430
+        try:  # noqa: WPS501
+            yield db_session
+        finally:
+            db_session.close()
+
+    app.dependency_overrides[get_db] = override_get_db
     async with AsyncClient(
-        app=app,
-        base_url='http://test',
-        timeout=10,
+        app=app, base_url="http://test", timeout=10,
     ) as async_client:
         yield async_client

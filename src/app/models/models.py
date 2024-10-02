@@ -16,7 +16,7 @@ class Cat(Base):
     breed: Mapped['Breed'] = relationship(back_populates='cats')
 
     @validates('age_in_months')
-    def validate_amount_gt_zero(self, age_in_months) -> int:
+    def validate_amount_gt_zero(self, key, age_in_months) -> int:
         """
         Валидация возраста кота. Проверяет, что возраст больше нуля.
 

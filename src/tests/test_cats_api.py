@@ -6,7 +6,7 @@ from fastapi import status
 @pytest.mark.integration
 async def test_get_all_cats(test_client, cat_payload, breed_payload):
     """Тест взятия всех кошачих из БД."""
-    response = await test_client.post("/api/cats")
+    response = await test_client.get("/api/cats")
     response_json = response.json()
     assert response.status_code == status.HTTP_200_OK
     assert response_json["cats"][0]["color"] == cat_payload["color"]
@@ -19,7 +19,7 @@ async def test_get_all_cats(test_client, cat_payload, breed_payload):
 @pytest.mark.integration
 async def test_get_all_breeds(test_client, breed_payload):
     """Тест взятия всех пород из БД."""
-    response = await test_client.post("/api/cats/breeds")
+    response = await test_client.get("/api/cats/breeds")
     response_json = response.json()
 
     assert response.status_code == status.HTTP_200_OK
@@ -32,7 +32,7 @@ async def test_get_cats_with_breed(
     test_client, cat_payload, breed_payload, breed_name,
 ):
     """Тест взятия всех котов определенной породы из БД."""
-    response = await test_client.post(f"/api/cats/breeds/{breed_name}")
+    response = await test_client.get(f"/api/cats/breeds/{breed_name}")
     response_json = response.json()
 
     assert response.status_code == status.HTTP_200_OK
@@ -46,7 +46,7 @@ async def test_get_cats_with_breed(
 @pytest.mark.integration
 async def test_get_cats_with_id(test_client, cat_payload, breed_payload, cat_id):
     """Тест взятия по его id из БД."""
-    response = await test_client.post(f"/api/cats/{cat_id}")
+    response = await test_client.get(f"/api/cats/{cat_id}")
     response_json = response.json()
 
     assert response.status_code == status.HTTP_200_OK

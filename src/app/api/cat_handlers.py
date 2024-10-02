@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.core.settings import settings
 from src.app.models.db_helper import db_helper
-from src.app.schemas.schemas import CatListResponseModel
+from src.app.schemas import schemas
 from src.app.service.cat import CatService, get_cat_service
 
 router = APIRouter(
@@ -15,16 +15,20 @@ router = APIRouter(
 async def get_all_cats(
     session: AsyncSession = Depends(db_helper.session_dependency),
     cat_service: CatService = Depends(get_cat_service),
-) -> CatListResponseModel:
+) -> schemas.CatListResponseModel:
     """Получение списка всех котят."""
     cats = await cat_service.get_all_cats(session=session)
-    return CatListResponseModel(cats=cats)
+    return schemas.CatListResponseModel(cats=cats)
 
 
 @router.post('/cats/breeds')
-async def all_breeds():
+async def all_breeds(
+    session: AsyncSession = Depends(db_helper.session_dependency),
+    cat_service: CatService = Depends(get_cat_service),
+) -> schemas.BreedListResponseModel:
     """Получение списка пород."""
-    pass  # noqa: WPS420
+    breeds = await cat_service.get_all_breeds(session=session)
+    return schemas.BreedListResponseModel(breeds=breeds)
 
 
 @router.post('/cats/breeds/{breed}')

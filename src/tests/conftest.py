@@ -33,16 +33,22 @@ async def db_session():
     await engine.dispose()
 
 
+@pytest.fixture(scope='function')
+def breed_name():
+    """Название породы."""
+    return "Британский вислоухий"
+
+
 @pytest.fixture(scope="function")
-async def breed_payload():
+def breed_payload(breed_name):
     """Тестовые данные для создания записи в БД."""
     return {
-        "name": "Британский вислоухий",
+        "name": breed_name,
     }
 
 
 @pytest.fixture(scope="function")
-async def cat_payload(breed_payload):
+def cat_payload(breed_payload):
     """Тестовые данные для создания записи в БД."""
     return {
         "color": "Красный",

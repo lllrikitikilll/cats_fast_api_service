@@ -19,7 +19,7 @@ class PostgresConfig(BaseModel):
 class UrlPath(BaseModel):
     """Конфигурация url Проекта."""
 
-    prefix = '/api'
+    prefix: str
 
 
 class Settings(BaseSettings):

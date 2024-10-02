@@ -144,10 +144,10 @@ class CatService:
             cat_data (CreateCatDataModel): данные с полями для записи в БД
 
         Raises:
-            HTTPException: Ошибка 404 если нет такой записи в БД
+            HTTPException: Ошибка 500 ошибка сервера
 
         Returns:
-            Cat: Список кошек заданной породы
+            schemas.CreateCatResponse: статус запроса
         """
         try:  # noqa: WPS229
             new_cat = Cat(**cat_data.model_dump())
@@ -167,6 +167,37 @@ class CatService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail='Не удалось создать кошку из-за ошибки на сервере.',
             ) from exp
+
+    async def delete_cat(self, session: AsyncSession, cat_id: int):
+        """Удаление объекта Cat по id.
+
+        Args:
+            session (AsyncSession): асинхронная сессия
+            cat_id (int): id кошки в БД
+
+        Raises:
+            HTTPException: Ошибка 404 если нет такой записи в БД
+
+        Returns:
+            schemas.DeleteCatResponse: статус запроса
+        """
+        async with session.begin():
+            stmt = select(Cat).where(Cat.id == cat_id)
+            result_db = await session.execute(stmt)
+
+            cat = result_db.scalar_one_or_none()
+            if not cat:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail='Кошка не найдена.',
+                )
+
+            await session.delete(cat)
+            await session.commit()
+        return schemas.DeleteCatResponse(
+            status=schemas.Status.success,
+            message="Запись удалена",
+        )
 
 
 cat_service = CatService()

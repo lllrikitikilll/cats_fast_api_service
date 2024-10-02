@@ -11,11 +11,23 @@ class Status(Enum):
     error = 'Error'
 
 
-class CreateCatResponse(BaseModel):
-    """Схема ответа создания объекта Cat."""
+class BaseCatResponse(BaseModel):
+    """Базовая схема ответа."""
 
     status: Status = Status.success
     message: str
+
+
+class CreateCatResponse(BaseCatResponse):
+    """Cсхема ответа создания объекта Cat."""
+
+    pass  # noqa: WPS604, WPS420
+
+
+class DeleteCatResponse(BaseCatResponse):
+    """Cхема ответа удаления объекта Cat."""
+
+    pass  # noqa: WPS604, WPS420
 
 
 class BreedBase(BaseModel):

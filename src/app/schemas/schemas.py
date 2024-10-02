@@ -29,3 +29,9 @@ class CatListResponseModel(BaseModel):
     """Схема ответа список кошачих."""
 
     cats: List[CatBase]
+
+
+class BreedListResponseModel(BaseModel):
+    """Схема ответа список пород."""
+
+    breeds: list[BreedBase]

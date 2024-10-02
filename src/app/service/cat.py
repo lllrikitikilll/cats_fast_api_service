@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.app.models import Breed, Cat
+from src.app.schemas import schemas
 
 
 class CatService:
@@ -21,7 +22,7 @@ class CatService:
             HTTPException: Ошибка 404 если список пустой
 
         Returns:
-            list[Cat]: Список кошачих из таблицы
+            list[Cat]: Список кошачих (Cat) из таблицы
         """
         stmt = select(Cat).options(selectinload(Cat.breed))
         result_db: Result = await session.execute(statement=stmt)
@@ -82,7 +83,7 @@ class CatService:
             HTTPException: Ошибка 404 если породы нет
 
         Returns:
-            list[Cat]: Список кошек заданной породы
+            list[Cat]: Список Cat (кошек) заданной породы (breed)
         """
         stmt = select(Cat).options(selectinload(Cat.breed)).join(Breed).where(Breed.name == breed)  # noqa: E501, WPS221
         result_db: Result = await session.execute(statement=stmt)
@@ -113,7 +114,7 @@ class CatService:
             HTTPException: Ошибка 404 если нет такой записи в БД
 
         Returns:
-            Cat: Список кошек заданной породы
+            Cat: объект Cat по id из БД
         """
         stmt = select(Cat).where(Cat.id == cat_id).options(selectinload(Cat.breed))  # noqa: WPS221, E501
         result_db: Result = await session.execute(statement=stmt)
@@ -123,7 +124,7 @@ class CatService:
         except SQLAlchemyError as exp:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Возникла ошибка при кошеки с id: {cat_id}.",
+                detail=f"Возникла ошибка при взятии кошки с id: {cat_id}.",
             ) from exp
 
         if not cat:
@@ -132,6 +133,40 @@ class CatService:
                 detail='Такой кошки у нас нет.',
             )
         return cat
+
+    async def create_cat(
+        self, session: AsyncSession, cat_data: schemas.CreateCatDataModel,
+    ):
+        """Создает новую запись кошки в базе данных.
+
+        Args:
+            session (AsyncSession): асинхронная сессия
+            cat_data (CreateCatDataModel): данные с полями для записи в БД
+
+        Raises:
+            HTTPException: Ошибка 404 если нет такой записи в БД
+
+        Returns:
+            Cat: Список кошек заданной породы
+        """
+        try:  # noqa: WPS229
+            new_cat = Cat(**cat_data.model_dump())
+
+            session.add(new_cat)
+
+            await session.commit()
+
+            return schemas.CreateCatResponse(
+                status=schemas.Status.success,
+                message="Запись создана",
+            )
+
+        except SQLAlchemyError as exp:
+            await session.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail='Не удалось создать кошку из-за ошибки на сервере.',
+            ) from exp
 
 
 cat_service = CatService()

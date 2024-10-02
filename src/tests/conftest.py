@@ -26,9 +26,8 @@ async def db_session():
     async with async_session_factory() as session:
         yield session  # Возвращаем сессию для использования в тестах
 
-        # Откат изменений после выполнения теста
-        await session.rollback()
-
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
     # Закрываем соединение с базой данных
     await engine.dispose()
 

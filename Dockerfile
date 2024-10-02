@@ -2,7 +2,7 @@ FROM python:3.12-slim
 
 WORKDIR /workspace/cats_service
 
-COPY poetry.lock pyproject.toml ./
+COPY poetry.lock pyproject.toml alembic.ini ./
 
 RUN python3.12 -m pip install poetry && \
     poetry install --no-root

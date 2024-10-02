@@ -16,6 +16,7 @@ class BreedBase(BaseModel):
 class CatBase(BaseModel):
     """Базовая схема модели Cat."""
 
+    id: int
     color: str
     age_in_months: int
     description: Optional[str] = None

@@ -9,7 +9,7 @@ from src.app.models.models import Cat
 class CatService:
     """Сервис CRUD для работы с данными кошачих."""
 
-    async def get_all_cats(self, session: AsyncSession) -> list[Cat]:
+    async def get_all_cats(self, session: AsyncSession):
         """Запрос всех кошек.
 
         Args:

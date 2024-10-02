@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.app.models.models import Cat
+from src.app.models import Breed, Cat
 
 
 class CatService:
@@ -22,7 +22,6 @@ class CatService:
 
         Returns:
             list[Cat]: Список кошачих из таблицы
-
         """
         stmt = select(Cat).options(selectinload(Cat.breed))
         result_db: Result = await session.execute(statement=stmt)
@@ -40,8 +39,37 @@ class CatService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail='Котята не найдены.',
             )
-
         return cats
+
+    async def get_all_breeds(self, session: AsyncSession):
+        """Запрос всех кошек.
+
+        Args:
+            session (AsyncSession): асинхронная сессия
+
+        Raises:
+            HTTPException: Ошибка 404 если список пустой
+
+        Returns:
+            list[Breed]: Список пород из таблицы Breed
+        """
+        stmt = select(Breed)
+        result_db: Result = await session.execute(statement=stmt)
+
+        try:
+            breeds = list(result_db.scalars().all())
+        except SQLAlchemyError as exp:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail='Возникла непредвиденная ошибка при получении списка пород.',
+            ) from exp
+
+        if not breeds:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Породы отсутствуют.',
+            )
+        return breeds
 
 
 cat_service = CatService()

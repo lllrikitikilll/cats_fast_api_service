@@ -28,10 +28,29 @@ async def test_get_all_breeds(test_client, breed_payload):
 
 @pytest.mark.api
 @pytest.mark.integration
-async def test_get_cats_with_breed(test_client, breed_payload, breed_name):
+async def test_get_cats_with_breed(
+    test_client, cat_payload, breed_payload, breed_name,
+):
     """Тест взятия всех котов определенной породы из БД."""
     response = await test_client.post(f"/api/cats/breeds/{breed_name}")
     response_json = response.json()
 
     assert response.status_code == status.HTTP_200_OK
     assert response_json["cats"][0]["breed"]["name"] == breed_payload["name"]
+    assert response_json["cats"][0]["color"] == cat_payload["color"]
+    assert response_json["cats"][0]["age_in_months"] == cat_payload["age_in_months"]
+    assert response_json["cats"][0]["description"] == cat_payload["description"]
+
+
+@pytest.mark.api
+@pytest.mark.integration
+async def test_get_cats_with_id(test_client, cat_payload, breed_payload, cat_id):
+    """Тест взятия по его id из БД."""
+    response = await test_client.post(f"/api/cats/{cat_id}")
+    response_json = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response_json["id"] == cat_id
+    assert response_json["color"] == cat_payload["color"]
+    assert response_json["breed"]["name"] == breed_payload["name"]
+    assert response_json["age_in_months"] == cat_payload["age_in_months"]

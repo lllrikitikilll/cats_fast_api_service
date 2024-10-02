@@ -1,5 +1,7 @@
+from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.engine import Result
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -15,12 +17,31 @@ class CatService:
         Args:
             session (AsyncSession): асинхронная сессия
 
+        Raises:
+            HTTPException: Ошибка 404 если список пустой
+
         Returns:
             list[Cat]: Список кошачих из таблицы
+
         """
         stmt = select(Cat).options(selectinload(Cat.breed))
         result_db: Result = await session.execute(statement=stmt)
-        return list(result_db.scalars().all())
+
+        try:
+            cats = list(result_db.scalars().all())
+        except SQLAlchemyError as exp:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail='Возникла непредвиденная ошибка при получении списка котят.',
+            ) from exp
+
+        if not cats:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Котята не найдены.',
+            )
+
+        return cats
 
 
 cat_service = CatService()

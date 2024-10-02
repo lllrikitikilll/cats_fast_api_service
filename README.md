@@ -14,9 +14,14 @@ docker compose up -d
 docker exec -i cats_service poetry run alembic upgrade head
 ```
 
-B наполенение БД тестовыми данными
+B наполенение БД тестовыми данными:
 ```bash
 docker exec -i postgresql psql -U postgres_user -d postgres_db -f test_data.sql
+```
+
+Документация Swagger будет доступна по ссылке:
+```
+http://localhost:8000/docs/
 ```
 
 ## Тестирование.

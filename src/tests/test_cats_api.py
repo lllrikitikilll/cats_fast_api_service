@@ -1,6 +1,8 @@
 import pytest
 from fastapi import status
 
+from src.app.schemas import schemas
+
 
 @pytest.mark.api
 @pytest.mark.integration
@@ -54,3 +56,15 @@ async def test_get_cats_with_id(test_client, cat_payload, breed_payload, cat_id)
     assert response_json["color"] == cat_payload["color"]
     assert response_json["breed"]["name"] == breed_payload["name"]
     assert response_json["age_in_months"] == cat_payload["age_in_months"]
+
+
+@pytest.mark.api
+@pytest.mark.integration
+async def test_create_cat(test_client, create_cat_payload):
+    """Тест записи объекта Cat в БД."""
+    response = await test_client.post("/api/cats", json=create_cat_payload)
+    response_json = response.json()
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response_json["status"] == schemas.Status.success.value
+    assert response_json["message"] == "Запись создана"

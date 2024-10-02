@@ -63,6 +63,17 @@ def cat_payload(breed_payload):
     }
 
 
+@pytest.fixture(scope="function")
+def create_cat_payload():
+    """Тестовые данные для создания записи в БД."""
+    return {
+        "color": "Рыжий",
+        "age_in_months": 60,
+        "description": "Краткое описание",
+        "breed_id": 1,
+    }
+
+
 @pytest.fixture(scope="function", autouse=True)
 async def setup_database(db_session, cat_payload, breed_payload):
     """Инициализация базы данных перед тестами."""

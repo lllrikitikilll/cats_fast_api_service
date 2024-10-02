@@ -32,9 +32,14 @@ async def all_breeds(
 
 
 @router.post("/cats/breeds/{breed}")
-async def cats_with_breeds(breed: str):
-    """Получение списка пород."""
-    pass  # noqa: WPS420
+async def cats_with_breed(
+    breed: str,
+    session: AsyncSession = Depends(get_db),
+    cat_service: CatService = Depends(get_cat_service),
+) -> schemas.CatListResponseModel:
+    """Получение списка кошачих опред. породы."""
+    cats = await cat_service.get_cats_with_breed(session=session, breed=breed)
+    return schemas.CatListResponseModel(cats=cats)
 
 
 @router.post("/cats/{cat_id}")

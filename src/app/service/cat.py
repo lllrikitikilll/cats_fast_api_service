@@ -102,6 +102,37 @@ class CatService:
             )
         return cats
 
+    async def get_cats_with_id(self, session: AsyncSession, cat_id: int):
+        """Запрос кошки по id.
+
+        Args:
+            session (AsyncSession): асинхронная сессия
+            cat_id (int): id кошки в БД
+
+        Raises:
+            HTTPException: Ошибка 404 если нет такой записи в БД
+
+        Returns:
+            Cat: Список кошек заданной породы
+        """
+        stmt = select(Cat).where(Cat.id == cat_id).options(selectinload(Cat.breed))  # noqa: WPS221, E501
+        result_db: Result = await session.execute(statement=stmt)
+
+        try:
+            cat = result_db.scalars().first()
+        except SQLAlchemyError as exp:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Возникла ошибка при кошеки с id: {cat_id}.",
+            ) from exp
+
+        if not cat:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Такой кошки у нас нет.',
+            )
+        return cat
+
 
 cat_service = CatService()
 

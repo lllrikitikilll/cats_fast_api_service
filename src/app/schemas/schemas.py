@@ -30,6 +30,12 @@ class DeleteCatResponse(BaseCatResponse):
     pass  # noqa: WPS604, WPS420
 
 
+class UpdateCatResponse(BaseCatResponse):
+    """Cхема ответа обновления объекта Cat."""
+
+    pass  # noqa: WPS604, WPS420
+
+
 class BreedBase(BaseModel):
     """Базовая схема модели Breed."""
 
@@ -51,6 +57,15 @@ class CatBase(BaseModel):
 
     class Config:  # noqa: D106
         from_attributes = True
+
+
+class UpdateCatData(BaseModel):
+    """Схема данных для обновления объекта Cat."""
+
+    color: str
+    age_in_months: int
+    description: Optional[str] = None
+    breed_id: int
 
 
 class CreateCatDataModel(BaseModel):

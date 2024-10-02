@@ -25,6 +25,7 @@ repos:
     -   id: mypy
         name: mypy
         entry: ./venv/Scripts/mypy.exe
+        args: ["--explicit-package-bases"]
         language: python
         types: [python]
 

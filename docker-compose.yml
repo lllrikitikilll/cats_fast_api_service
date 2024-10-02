@@ -1,7 +1,7 @@
 services:
     postgres:
         image: postgres:latest
-        container_name: postgres_container
+        container_name: postgresql
         env_file:
             - .env-dev
         ports:
@@ -17,3 +17,5 @@ services:
             - .env-dev 
         ports:
             - "8000:8000"
+        volumes:
+            - ./src:/workspace/cats_service/src

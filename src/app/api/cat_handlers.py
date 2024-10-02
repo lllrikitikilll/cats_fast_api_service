@@ -43,9 +43,13 @@ async def cats_with_breed(
 
 
 @router.post("/cats/{cat_id}")
-async def cat_info(cat_id: int):
+async def cat_info(
+    cat_id: int,
+    session: AsyncSession = Depends(get_db),
+    cat_service: CatService = Depends(get_cat_service),
+) -> schemas.CatBase:
     """Получение подробной информации о котенке."""
-    pass  # noqa: WPS420
+    return await cat_service.get_cats_with_id(session=session, cat_id=cat_id)
 
 
 @router.post("/cats")

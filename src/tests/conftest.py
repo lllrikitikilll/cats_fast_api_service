@@ -39,6 +39,12 @@ def breed_name():
     return "Британский вислоухий"
 
 
+@pytest.fixture(scope='function')
+def cat_id():
+    """Id кошки в БД."""
+    return 1
+
+
 @pytest.fixture(scope="function")
 def breed_payload(breed_name):
     """Тестовые данные для создания записи в БД."""
